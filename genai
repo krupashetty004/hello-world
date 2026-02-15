@@ -1,0 +1,188 @@
+!pip install mistralai
+import os
+os.environ["MISTRAL_API_KEY"]="nyAxm1y0JbNKtQ2CeWH6S5gZuaNr6GsW"
+api_key=os.environ["MISTRAL_API_KEY"]
+from mistralai import Mistral
+obj1=Mistral(api_key)
+result=obj1.chat.complete(
+    model="mistral-medium",
+    messages=[{"role":"user","content":"can u explain RRR telugu movie 
+"}],
+    temperature=0.8,
+    top_p=1.0,
+    max_tokens=1024
+)
+print(result.choices[0].message.content)
+def bnm(topic,no_of_questions=5):
+  prompt=f"""
+  can u please Create {no_of_questions} question and answers
+  on {topic} in the format
+  Q:[Question]
+  A:[Answer]
+  """
+  result=obj1.chat.complete(
+      model="mistral-tiny",
+      messages=[{"role":"user","content":prompt}],
+      temperature=0.6,
+      top_p=1.0,
+      max_tokens=1024
+  )
+  return result.choices[0].message.content
+topic="Generative AI"
+no_of_questions=5
+print(bnm(topic,no_of_questions))
+
+
+#2
+!pip install mistralai
+from mistralai import Mistral
+from google.colab import userdata
+mistral_api_key=userdata.get('MISTRAL_API_KEY').strip('"')
+client=Mistral(api_key=mistral_api_key)
+image_agent=client.beta.agents.create(
+    model="mistral-medium-2505",
+    name="Image Generation Agent",
+    description="Agent used to generate images.",
+    instructions="Use the image generation tool when you have to 
+create images.",
+    tools=[{"type": "image_generation"}],
+    completion_args={
+        "temperature":0.8,
+        "top_p":0.95,
+    }
+)
+response = client.beta.conversations.start(
+    agent_id=image_agent.id,
+    inputs="Generate business meeting of four people gathered around a 
+campfire outdoors in some wood"
+)
+from mistralai.models import ToolFileChunk
+for i,chunk in enumerate(response.outputs[-1].content):
+  if isinstance(chunk,ToolFileChunk):
+    file_bytes=client.files.download(file_id=chunk.file_id).read()
+    # Download using the ToolFileChunk ID
+# Save the file locally
+with open(f"image_generated3.png", "wb") as file:
+    file.write(file_bytes)
+
+#3
+from mistralai import Mistral
+client=Mistral(api_key="x9Y5S1N8qUILAwrpd7LcLqgWV1vNvVbE");
+response=client.chat.complete(
+    model="mistral-tiny",
+    messages=[
+        {
+            "role":"user",
+            "content":"can you generate list of top trending cars"
+        }
+    ]
+)
+print(response.choices[0].message.content)
+df=client.chat.complete(
+    model="mistral-medium",
+    messages=[
+        {
+            "role":"user",
+            "content":"can you generate list of IPL winning history in 
+json format with teamname,year as columns "
+        }
+    ]
+)
+print(df.choices[0].message.content)
+lan="Translate 'I want to play'to Telugu in one line"
+df1=client.chat.complete(
+    model="mistral-medium",
+    messages=[
+        {
+            "role":"user",
+            "content":lan
+        }
+    ]
+)
+print(df1.choices[0].message.content)
+
+df1=client.chat.complete(
+    model="mistral-medium",
+    messages=[
+        {
+            "role":"user",
+            "content":"can you do the sentiment analysis of given in
+lan1 as positive, negative and neutral "+
+lan1
+        }
+    ]
+)
+print
+(df1.choices[0
+].message.content)
+
+#4
+from mistralai import Mistral
+from google.colab import userdata
+mistral_api_key=userdata.get('chain').strip('"')
+client=Mistral(api_key=mistral_api_key)
+#chain of prompts
+RCB=''' A stamped during RCB's victory celebrations in bengaluru on 
+june 4 clamied 11 lives and left several others with injuries,
+turning a moment of triumph into tragedy.Facing a blacklash for 
+mismanagement and hurried planning, the congress government in 
+karnataka suspended top police officials'''
+df3=client.chat.complete(
+    model="mistral-tiny",
+    messages=[
+        {"role": "user", "content": "can you find key points in the 
+given text"+RCB
+        }
+    ]
+)
+keypoints=df3.choices[0].message.content
+print(df3.choices[0].message.content)
+df4=client.chat.complete(
+    model="mistral-tiny",
+    messages=[
+        {"role": "user",
+         "content": "can you summarize the key points in the given 
+text"+keypoints
+        }
+    ]
+)
+summary=df4.choices[0].message.content
+print(df4.choices[0].message.content)
+df5=client.chat.complete(
+    model="mistral-tiny",
+    messages=[
+        {"role": "user",
+         "content": "can you do the sentimental analysis of each 
+summary values given text as positive,negative or as neutral"+summary
+        }
+    ]
+)
+print(df5.choices[0].message.content)
+def call_llm(prompt):
+  """simple wrapper to call llm"""
+  response=client.chat.complete(
+      model="mistral-tiny",
+      messages=[
+          {"role": "user", "content": prompt
+          }
+      ]
+  )
+  return response.choices[0].message.content
+#---The Chain--
+#step 1: Brainstrom idea
+topic="A robort learning to paint"
+idea_prompt=f"Give me a title and a 1-sentence premise for a story 
+about: {topic}"
+story_idea=call_llm(idea_prompt)
+print(f"---IDEA---\n{story_idea}\n")
+#step 2:Write a short story based on step1
+draft_prompt=f"write a 3- sentence story based on this idea:
+{story_idea}"
+story_draft=call_llm(draft_prompt)
+print(f"---DRAFT---\n{story_draft}\n")
+#step 3:Refine/Critique based on step 2
+polish_prompt=f"Make this story more emotional :{story_draft}"
+final_story=call_llm(polish_prompt)
+print(f"---FINAL STORY---\n{final_story}\n")
+
+
