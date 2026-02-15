@@ -1,6 +1,6 @@
 !pip install mistralai
 import os
-os.environ["MISTRAL_API_KEY"]="nyAxm1y0JbNKtQ2CeWH6S5gZuaNr6GsW"
+os.environ["MISTRAL_API_KEY"]="api_key"
 api_key=os.environ["MISTRAL_API_KEY"]
 from mistralai import Mistral
 obj1=Mistral(api_key)
