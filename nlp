@@ -1,0 +1,131 @@
+1. Lexical Semantics- Design Python program to do text classification.  
+from sklearn.datasets import fetch_20newsgroups 
+from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.pipeline import make_pipeline 
+data = fetch_20newsgroups(subset='all') 
+model = make_pipeline(TfidfVectorizer(stop_words='english'), LogisticRegression(max_iter=1000)) 
+model.fit(data.data, data.target) 
+def classify(text): 
+idx = model.predict([text])[0] 
+return data.target_names[idx] 
+print(f"Result: {classify('NASA launches a new space mission.')}") 
+2. Meaning Representation- Implement a Python program to represent the meaning of the given text.  
+import nltk 
+nltk.download(['punkt', 'averaged_perceptron_tagger'], quiet=True) 
+def represent_meaning(text): 
+tokens = nltk.word_tokenize(text) 
+tags = nltk.pos_tag(tokens) 
+meaning = {} 
+for word, tag in tags: 
+if tag.startswith('VB'): meaning['action'] = word 
+elif tag.startswith('JJ'): meaning['desc'] = word 
+elif tag.startswith('NN'): 
+meaning['object' if 'subject' in meaning else 'subject'] = word 
+return meaning 
+sentence = "The quick cat chased the mouse" 
+print(f"Sentence: {sentence}\nMeaning: {represent_meaning(sentence)}") 
+3. Disambiguity- Design the lesk algorithm in Python to handle word sense disambiguation.  
+import nltk 
+from nltk.corpus import wordnet as wn 
+from nltk.tokenize import word_tokenize 
+def lesk_algorithm(word, sentence): 
+tokens = set(word_tokenize(sentence)) 
+synsets = wn.synsets(word) 
+if not synsets: return None 
+def get_overlap(sense): 
+gloss = set(word_tokenize(sense.definition())) 
+return len(tokens & gloss) 
+return max(synsets, key=get_overlap) 
+# Usage 
+sentence = "I went to the bank to deposit my money." 
+word = "bank" 
+res = lesk_algorithm(word, sentence) 
+if res: 
+print(f"Sense: {res.name()}\nDef: {res.definition()}") 
+4. Information Extraction- Design Python programs to extract structured information from 
+unstructured information.  
+import spacy, email 
+from email.policy import default 
+try: 
+nlp = spacy.load("en_core_web_sm") 
+except: 
+import subprocess, sys 
+subprocess.check_call([sys.executable, '-m', 'spacy', 'download', 'en_core_web_sm']) 
+nlp = spacy.load("en_core_web_sm") 
+email_content = """From: sender@example.com 
+To: recipient@example.com 
+Subject: Sample Email 
+This is a sample email for testing information extraction. 
+""" 
+msg = email.message_from_string(email_content, policy=default) 
+body = msg.get_content().strip() 
+print(f"From: {msg['From']}\nTo: {msg['To']}\nSubject: {msg['Subject']}\nBody: {body}\n") 
+5. Filtering Stop Words- Implement a python program to filtering stop words.  
+import nltk 
+nltk.download('punkt') 
+nltk.download('stopwords') 
+from nltk.tokenize import word_tokenize 
+from nltk.corpus import stopwords 
+text="NLTK is a leading platform for building python programs to work with human language data." 
+tokens= word_tokenize(text) 
+stop_words=set(stopwords.words('english')) 
+filtered_tokens=[word for word in tokens if word.lower() not in stop_words] 
+print("Original Text: " ) 
+print(text) 
+print("\n Filtered Text (without stopwords):") 
+print(" ".join(filtered_tokens)) 
+6. Question Answering System- Design a questioning answer system using Python.  
+from sklearn.feature_extraction.text import TfidfVectorizer 
+from sklearn.metrics.pairwise import cosine_similarity 
+corpus = [ 
+"Albert Einstein was a German-born theoretical physicist who developed the theory of relativity.", 
+"The Mona Lisa is a half-length portrait painting by the Italian artist Leonardo da Vinci.", 
+"Python is an interpreted, high-level, general-purpose programming language.", 
+"Mount Everest is the highest mountain in the world, located in Nepal." 
+] 
+vectorizer = TfidfVectorizer(stop_words='english') 
+corpus_tfidf = vectorizer.fit_transform(corpus) 
+def answer_question(question): 
+query_tfidf = vectorizer.transform([question]) 
+similarities = cosine_similarity(query_tfidf, corpus_tfidf) 
+best_match_idx = similarities.argmax() 
+return corpus[best_match_idx] 
+questions = [ 
+"Who developed the theory of relativity?", 
+"What is the Mona Lisa?", 
+"What is Python?", 
+"Where is Mount Everest?" 
+] 
+for q in questions: 
+print(f"Q: {q}\nA: {answer_question(q)}\n") 
+7. Casual Masking-Implement a python program to do casual masking in GPT.  
+import numpy as np 
+def casual_attention_mask_numpy(n_dest,n_src): 
+i=np.arange(n_dest)[:,None] 
+j=np.arange(n_src) 
+mask=i>=j #lower triangular mask 
+return mask.astype(np.int32) 
+n_dest=10 
+n_src=10 
+mask=casual_attention_mask_numpy(n_dest,n_src) 
+print("Casual Attention Mask (n_dest x n_src):") 
+print(mask) 
+print("\nTransposed Mask (n_src x n_dest):") 
+print(mask.T) 
+8. Positional Encoding-Implement a python code to do positional encoding in GPT.  
+import numpy as np 
+def positional_encoding(seq_len,embed_dim,div_term=10000): 
+positions=np.arange(seq_len)[:,np.newaxis] 
+div_term_exp=np.arange(0,embed_dim,2)/embed_dim 
+angles=positions/(div_term**div_term_exp) 
+pos_enc=np.zeros((seq_len,embed_dim)) 
+pos_enc[:,0::2]=np.sin(angles) 
+pos_enc[:,0::2]=np.cos(angles) 
+return pos_enc 
+if __name__=='__main__': 
+seq_length=10 
+embedding_dim=512 
+pe=positional_encoding(seq_length,embedding_dim) 
+print("Positional Enccoding shape:",pe.shape) 
+print("Sample Positional Encoding :\n",pe[:2,:10]) 
