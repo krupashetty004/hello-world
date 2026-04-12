@@ -1,0 +1,41 @@
+7. Develop a python program to demonstrate the forward diffusion process for progressively converting 
+an image into noise. 
+import torch 
+import matplotlib.pyplot as plt 
+from torchvision import transforms 
+from PIL import Image 
+image = Image.open("OIP.jpg").resize((64, 64)) 
+transform = transforms.ToTensor() 
+x0 = transform(image) 
+steps = 10 
+beta = 0.4 
+x=x0.clone() 
+noisy_images = [x0] 
+noises = [] 
+for i in range(steps): 
+noise = torch.randn_like(x) 
+x = torch.sqrt(torch.tensor(1-beta)) * x + torch.sqrt(torch.tensor(beta)) * noise 
+noisy_images.append(x.clone()) 
+noises.append(noise) 
+plt.figure(figsize=(15, 5)) 
+for i in range(len(noisy_images)): 
+plt.subplot(2, steps+1, i+1) 
+plt.imshow(noisy_images[i].permute(1, 2, 0).clamp(0, 1)) 
+plt.title(f"Step {i}") 
+plt.axis("off") 
+8. Develop a python program to demonstrate the backward diffusion process for reconstructing an image 
+from noise. 
+(7th program + below part) 
+x_denoise = noisy_images[-1].clone() 
+denoised_image = [x_denoise] 
+for i in reversed(range(steps)): 
+noise = noises[i] 
+x_denoise = (x_denoise - torch.sqrt(torch.tensor(beta)) * noise) / torch.sqrt(torch.tensor(1-beta)) 
+denoised_image.append(x_denoise.clone()) 
+reversed(denoised_image) 
+plt.figure(figsize=(15, 5)) 
+for i in range(len(denoised_image)): 
+plt.subplot(2, steps+1, i+1) 
+plt.imshow(denoised_image[i].permute(1, 2, 0).clamp(0, 1)) 
+plt.title(f"Step {i}") 
+plt.axis("off")
