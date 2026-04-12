@@ -1,0 +1,80 @@
+#Create an LLM application for an appropriate task using LangChain framwork and RAG pattern 
+!pip install mistralai langchain langchain-core langchain-community langchain-text-splitters faiss-cpu 
+sentence-transformers 
+!pip install mistralai 
+import os 
+from mistralai.client import Mistral 
+from langchain_core.documents import Document 
+from langchain_text_splitters import RecursiveCharacterTextSplitter 
+from langchain_community.embeddings import HuggingFaceEmbeddings 
+from langchain_community.vectorstores import FAISS 
+os.environ["MISTRAL_API_KEY"] = "YundpHsObqBneafJZ4jtU1p7B2GMFHSu" 
+client = Mistral(api_key=os.environ["MISTRAL_API_KEY"]) 
+text = """Artificial Intelligence (AI) is a field of computer science 
+that focuses on creating systems capable of performing tasks that 
+typically require human intelligence such as learning, reasoning, and problem-solving.""" 
+documents = [Document(page_content=text)] 
+splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50) 
+docs = splitter.split_documents(documents) 
+embeddings = HuggingFaceEmbeddings() 
+vector_db = FAISS.from_documents(docs, embeddings) 
+query = "What is Artificial Intelligence?" 
+retrieved_docs = vector_db.similarity_search(query) 
+context = " ".join([doc.page_content for doc in retrieved_docs]) 
+prompt = f""" 
+Answer based only on the context below. 
+Context: {context} 
+Question: {query} 
+Answer: 
+""" 
+response = client.chat.complete( 
+model="mistral-large-latest", 
+messages=[{"role": "user", "content": prompt}] 
+) 
+print("Answer:", response.choices[0].message.content) 
+4. Implement a python to illustrate different types of document loading using Langchain 
+%pip install pdf2image pypdf docx2txt --quiet 
+!pip install langchain langchain-community 
+from langchain_community.document_loaders import Docx2txtLoader 
+from langchain_community.document_loaders import PyPDFLoader 
+from langchain_community.document_loaders.csv_loader import CSVLoader 
+import glob 
+all_documents = [] 
+from google.colab import drive 
+drive.mount('/content/drive') 
+loader = PyPDFLoader("/content/Module 1.pdf") 
+pages = loader.load_and_split() 
+print(pages[1]) 
+for page in pages: 
+page.metadata["description"] = "application of LSTM" 
+for page in pages[0:5]: 
+print(page.metadata) 
+all_documents.extend(pages) 
+csv_files = glob.glob("/content/sample_data/california_housing_test.csv") 
+csv_files = [f for f in csv_files if "california" in f] 
+print(csv_files) 
+for csv_file in csv_files: 
+    loader = CSVLoader(file_path=csv_file) 
+    data = loader.load() 
+    all_documents.extend(data) 
+ 
+from langchain_text_splitters import CharacterTextSplitter 
+text_splitter = CharacterTextSplitter.from_tiktoken_encoder( 
+    chunk_size=200, chunk_overlap=0 
+) 
+urls = [ 
+    "https://storage.googleapis.com/oreilly
+content/NutriFusion%20Foods%20Marketing%20Plan%202022.docx", 
+    "https://storage.googleapis.com/oreilly
+content/NutriFusion%20Foods%20Marketing%20Plan%202023.docx", 
+] 
+docs = [] 
+for url in urls: 
+    loader = Docx2txtLoader(url) 
+    pages = loader.load() 
+    chunks = text_splitter.split_documents(pages) 
+    for chunk in chunks: 
+        chunk.metadata["source"] = "NutriFusion Foods Marketing Plan - 2022/2023" 
+    docs.extend(chunks) 
+print(docs) 
+all_documents.extend(docs
