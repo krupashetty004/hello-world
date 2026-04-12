@@ -1,0 +1,85 @@
+5. Implement a python to illustrate function calling using Langchain 
+!pip install langchain langchain-community langchain-core langchain-mistralai 
+from langchain_core.output_parsers import PydanticOutputParser 
+from langchain_core.utils.function_calling import convert_to_openai_tool 
+from langchain_core.prompts import ChatPromptTemplate 
+from langchain_mistralai.chat_models import ChatMistralAI 
+from langchain_core.tools import tool 
+from pydantic.v1 import BaseModel, Field 
+from typing import Optional 
+ 
+class Article(BaseModel): 
+    """Identifying key points and contrarian views in an article.""" 
+ 
+    points: str = Field(..., description="Key points from the article") 
+    contrarian_points: Optional[str] = Field( 
+        None, description="Any contrarian points acknowledged in the article" 
+    ) 
+    author: Optional[str] = Field(None, description="Author of the article") 
+_EXTRACTION_TEMPLATE = """Extract and save the relevant entities mentioned \ 
+in the following passage together with their properties. 
+If a property is not present and is not required in the function parameters, do not include it in the output.""" 
+prompt = ChatPromptTemplate.from_messages( 
+    {('system', _EXTRACTION_TEMPLATE), ('user', '{input}')} 
+) 
+model = ChatMistralAI(mistral_api_key="Mf1XGWDTZ1OZeWEyJfMFhomTwa2wkCYH") 
+pydantic_schemas = [Article] 
+model = model.bind_tools(tools=pydantic_schemas) 
+from langchain_core.output_parsers.openai_tools import PydanticToolsParser 
+chain = prompt | model | PydanticToolsParser(tools=[Article]) 
+result = chain.invoke( 
+{ 
+} 
+) 
+"input": """In the recent article titled 'AI adoption in industry', 
+key points addressed include the growing interest in AI in various sectors, 
+the increase in AI research, and the need for responsible AI. However, the author, 
+Dr. Jane Smith, acknowledges a contrarian view — that without stringent regulations, 
+AI may pose high risks.""" 
+print(result) 
+6. Experiment to generate images using Stable diffusion over all relevant standard prompting practices 
+mentioned above and observing the relevant changes in model output 
+import torch 
+import os 
+from huggingface_hub import InferenceClient 
+from diffusers import StableDiffusionPipeline 
+from PIL import Image 
+import requests 
+print(requests.get("https://huggingface.co").status_code) 
+from google.colab import userdata 
+from huggingface_hub import login 
+hf_token = userdata.get("HF_TOKEN") 
+login(token=hf_token) 
+from diffusers import StableDiffusionPipeline 
+import torch 
+from google.colab import userdata 
+hf_token = userdata.get("HF_TOKEN") 
+pipeline = StableDiffusionPipeline.from_pretrained( 
+"runwayml/stable-diffusion-v1-5",  
+torch_dtype=torch.float16, 
+token=hf_token  
+) 
+pipeline.to("cuda")  
+def generate_and_save_image(prompt, negative_prompt, guidance_scale, filename): 
+"""Generates an image with given parameters and saves it.""" 
+negative_prompt = negative_prompt if negative_prompt is not None else "" 
+image = pipeline( 
+prompt=prompt, 
+negative_prompt=negative_prompt, 
+guidance_scale=guidance_scale 
+).images[0] 
+image.save(filename) 
+print(f"Image saved as {filename}") 
+prompt_basic = "A majestic dragon flying over a medieval castle" 
+generate_and_save_image(prompt_basic, None, 7.5, "dragon_basic.png") 
+prompt_negative = "A majestic dragon flying over a medieval castle" 
+negative_prompt_example = "blurry, low quality, distorted, ugly, bad anatomy" 
+generate_and_save_image(prompt_negative, negative_prompt_example, 7.5, "dragon_negative_prompt.png") 
+generate_and_save_image(prompt_basic, None, 4.0, "dragon_cfg_low.png") 
+generate_and_save_image(prompt_basic, None, 12.0, "dragon_cfg_high.png") 
+prompt_detailed = "A highly detailed, photorealistic image of a majestic red dragon with scales shimmering in 
+the sunlight, soaring above a grand, ancient medieval castle at sunset, volumetric lighting, epic fantasy art, 
+8k" 
+negative_prompt_detailed = "cartoon, drawing, low resolution, amateur, poorly rendered" 
+generate_and_save_image(prompt_detailed, negative_prompt_detailed, 9.0, "dragon_detailed.png") 
+print("Image generation experiments complete.") 
