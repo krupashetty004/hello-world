@@ -1,0 +1,340 @@
+reate a minimal (or 'Hello world')angent that responds to generic questions both
+in non-streaming and streaming mode
+import os
+from google.colab import userdata
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"]="False"
+os.environ["GOOGLE_API_KEY"]=userdata.get('GOOGLE_API_KEY')
+api_key=os.getenv('GOOGLE_API_KEY')
+from google.adk.agents import Agent,SequentialAgent,parallel_agent,LoopAgent
+from google.adk.models.google_llm import Gemini
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import AgentTool,FunctionTool,google_search
+from google.genai.types import HttpRetryOptions
+retry_config=HttpRetryOptions(
+attempts=5,
+exp_base=7,
+initial_delay=1,
+http_status_codes=[429,500,503,504]
+)
+Hello_agent=Agent(
+name="HelloAgent",
+model=Gemini(model_id="gemini-2.5-flash-lite",
+api_key=api_key,
+retry_config=retry_config
+),
+instruction=""" you are a helpful assistant,
+your job is to use the google search tool to answer the questions.""",
+tools=[google_search],
+output_key="research_findings"
+)
+runner=InMemoryRunner(Hello_agent)
+response=await runner.run_debug("What are the latest advancement in machine learning")
+Some of the latest advancements and trends in machine learning include:
+HelloAgent > Machine learning is experiencing rapid advancements and emerging trends, particularly in 2025 and 2026, driven 
+*   **Agentic AI and Intelligent Automation** Agentic AI is moving beyond simple assistants to become decision-makers and au
+*   **Next-Generation Large Language Models (LLMs) and Generative AI** Significant progress continues in generative AI and L
+*   **Computer Vision Breakthroughs** The ability of computers to "see" and understand images and videos has seen major stri
+*   **Smaller, More Efficient AI Models** While larger models remain important, there is a growing emphasis on developing sm
+*   **AI in Scientific Discovery** AI is increasingly active in scientific research, moving beyond summarizing information t
+*   **Data Evaluation and Model Transparency** Researchers are developing ways to measure the value of training data and ide
+*   **Quantum Machine Learning (QML)** Though still in early stages, QML is expected to see major breakthroughs, driving adv
+*   **Edge AI and Real-time Intelligence** The convergence of machine learning with edge computing and the Internet of Thing
+*   **AI Safety and Security** As AI becomes integrated into critical infrastructure, safety and security are paramount. The
+*   **Machine Unlearning (Digital Data Forgetting)** This emerging trend focuses on methods for AI systems to "forget" speci
+*   **No-code Machine Learning** This trend aims to make ML more accessible by relying on behavioral data and plain English 
+These advancements collectively indicate a shift towards more capable, efficient, transparent, and ethically considered mach
+2. Create simple customer service agent that should be able to change the delivery
+address,cancel, refund for an order and confirm back to the user with all the
+updated details
+import os
+from google.colab import userdata
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"]="False"
+os.environ["GOOGLE_API_KEY"]=userdata.get('GOOGLE_API_KEY1')
+api_key=os.getenv('GOOGLE_API_KEY1')
+from google.adk.agents import Agent,SequentialAgent,parallel_agent,LoopAgent
+from google.adk.models.google_llm import Gemini
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import AgentTool,FunctionTool,google_search
+from google.genai.types import HttpRetryOptions
+retry_config=HttpRetryOptions(
+    attempts=5,
+    exp_base=7,
+    initial_delay=1,
+    http_status_codes=[429,500,503,504]
+)
+customer_Support_Agent=Agent(
+    name='customerAgent',
+    model=Gemini(model_id="gemini-pro",
+        api_key=api_key,
+        retry_config=retry_config
+    ),
+    instruction="""your are a customer support agent
+    Help users:
+    1.Change delivery address
+    2.Cancel orders
+    3.Process refunds
+    4.Confirm update order details
+    """,
+    tools=[google_search]
+    )
+runner=InMemoryRunner(customer_Support_Agent)
+response=await runner.run_debug(""" My order Id is ORD12345.
+change my delivery address to 45 MG Road,Chennai.
+Cancel the order and initiate a refund""")
+Show hidden output
+3.create an agent with a set of standard tools with a foundation model for it to
+select appropriate tools for a given context 
+import os
+from google.colab import userdata
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"]="False"
+os.environ["GOOGLE_API_KEY"]=userdata.get('GOOGLE_API_KEY')
+api_key=os.getenv('GOOGLE_API_KEY')
+from google.adk.agents import Agent,SequentialAgent,parallel_agent,LoopAgent
+from google.adk.models.google_llm import Gemini
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import AgentTool,FunctionTool,google_search
+from google.genai.types import HttpRetryOptions
+retry_config=HttpRetryOptions(
+    attempts=5,
+    exp_base=7,
+    initial_delay=1,
+    http_status_codes=[429,500,503,504]
+)
+def add(x: float,y:float):
+  """Adds x and y"""
+  return f"The sum of {x}+{y} is {x+y}"
+def subtract(x: float,y:float):
+  """Subtracts y from x"""
+  return f"{x}minus{y} equals {x-y}"
+def multiply(x: float,y:float):
+  """Multiplies x and y"""
+  return f"{x} times {y} equals {x*y}"
+Local_Tool_Agent=Agent(name='LocaltoolAgent',
+    model=Gemini(model_id="gemini-2.5-flash-lite",
+        api_key=api_key,
+        retry_config=retry_config
+    ),
+    instruction=""" you are a local tool agent performing simple arithmatic operations like
+   addition,subtraction,and multiplications for the values pass by user and print correct efficient value,
+    if any values are missing then print error like missing values """,
+    tools=[add,subtract,multiply])
+runner=InMemoryRunner(Local_Tool_Agent)
+response=await runner.run_debug(""" What is 150+30? And 30*40?""")
+Show hidden output
+4. Implement an agent with API-Based tools to enquir about additional information
+by performing web searches 
+import os
+from google.colab import userdata
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"]="False"
+os.environ["GOOGLE_API_KEY"]=userdata.get('GOOGLE_API_KEY') # Set the correct environment variable name
+api_key=os.getenv('GOOGLE_API_KEY')
+from google.adk.agents import Agent,SequentialAgent,parallel_agent,LoopAgent
+from google.adk.models.google_llm import Gemini
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import AgentTool,FunctionTool,google_search
+from google.genai.types import HttpRetryOptions
+retry_config=HttpRetryOptions(
+    attempts=5,
+    exp_base=7,
+    initial_delay=1,
+    http_status_codes=[429,500,503,504]
+)
+!pip install duckduckgo_search
+from duckduckgo_search import DDGS
+def web_search(query):
+  with DDGS() as ddgs:
+    results=ddgs.text(query,max_results=3)
+    return "\n".join(
+        [f"{r['title']}-{r['body']}" for r in results ]
+    )
+Web_Search_Tool_Agent=Agent(
+    name='WebSearchToolAgent',
+    model=Gemini(model_id="gemini-2.5-flash-lite",
+                 retry_config=retry_config,
+                 api_key=api_key),
+    instruction="""
+    you are a web search assistant.
+    use the web_search tool whenever internet information is required.
+    Summarize the search results and answer the user's question cleraly
+    """,
+    tools = [google_search]
+)
+runner=InMemoryRunner(Web_Search_Tool_Agent)
+import warnings
+warnings.filterwarnings("ignore",category=DeprecationWarning)
+response=await runner.run_debug(""" Explain about AI?""")
+# ---- Cell 1: Setup ---
+import os
+from google.colab import userdata
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+os.environ["GOOGLE_API_KEY"] = userdata.get('GOOGLE_API_KEY')
+api_key = os.getenv("GOOGLE_API_KEY")
+# ---- Cell 2: Imports ---
+from google.adk.agents import Agent, SequentialAgent, ParallelAgent, loop_agent
+from google.adk.models.google_llm import Gemini
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import AgentTool, FunctionTool, google_search
+from google.genai import types
+# ---- Cell 3: Retry config ---
+retry_config = types.HttpRetryOptions(
+attempts=5,
+exp_base=7,
+initial_delay=1,
+http_status_codes=[429, 500, 503, 504]
+)
+# ---- Cell 4: Local tools ---
+def add(x: float, y: float):
+"""Add x and y"""
+return f"the sum of {x} + {y} is {x+y}"
+def sub(x: float, y: float):
+"""Subtract y from x"""
+return f"the sub of {x} minus {y} is {x-y}"
+def mul(x: float, y: float):
+"""Multiply x and y"""
+return f"the {x} times {y} is {x*y}"
+def divide(x: float, y: float):
+"""Divide x by y"""
+if y == 0:
+return "Error: division by zero"
+return f"{x} divided by {y} is {x/y}"
+# ---- Cell 5: API-based tool (simplified, with try/except kept) ---
+!pip install -q duckduckgo_search
+from duckduckgo_search import DDGS
+def web_search(query: str):
+"""Searches the web for current information and returns a short summary of results"""
+try:
+results = DDGS().text(query, max_results=3)
+return "\n".join(f"{r['title']}: {r['body']}" for r in results)
+except Exception as e:
+return f"Search failed: {e}"
+# ---- Cell 6: Agent — local tools + API-based tool together ---
+local_and_api_Tool_Agent = Agent(
+name='Local_API_agent',
+model=Gemini(
+model="gemini-2.5-flash-lite",
+retry_config=retry_config,
+api_key=api_key
+),
+instruction="""
+You are an agent capable of using two kinds of tools:
+1. Local tools (add, sub, mul, divide) — use these for arithmetic
+operations on values the user provides. If any value is missing,
+reply with an error like "missing value".
+2. An API-based tool (web_search) — use this whenever the user asks
+for real-world, current, or factual information that requires
+looking something up on the internet.
+Always choose the correct tool for each part of the user's request.
+""",
+tools=[add, sub, mul, divide, web_search]
+)
+# ---- Cell 7: Runner ---
+runner = InMemoryRunner(local_and_api_Tool_Agent)
+# ---- Cell 8: Test query — exercises both local and API-based tools ---
+response = await runner.run_debug(
+"""What is 150+150? Also 30/40?
+And can you tell me the latest news about AI in India?"""
+)
+import google.generativeai as genai
+from google.colab import userdata
+genai.configure(api_key=userdata.get('GOOGLE_API_KEY'))
+model = genai.GenerativeModel("gemini-2.5-flash")
+memory = []
+print("chatbot started (type 'exit' to quit)\n")
+while True:
+user_input = input("You: ")
+if user_input.lower() == "exit":
+break
+memory.append(f"User:{user_input}")
+context = "\n".join(memory)
+prompt = f"""you are a helpful assistant.
+Conversation History:
+{context}
+Respond to the latest user message.
+"""
+response = model.generate_content(prompt)
+answer = response.text
+memory.append(f"Assist:{answer}")
+print(f"\nAssistant:{answer}\n")
+
+5. Implement a simple MCP server that evaluates arithemetic expressions and
+provides weather information ,and an agent to call appropriate tools exposed by
+the MCP server based on the user's message
+!pip install mcp
+from mcp.server.fastmcp import FastMCP
+mcp=FastMCP("UtilityServer")
+server_code="""
+from mcp.server.fastmcp import FastMCP
+mcp=FastMCP("UtilityServer")
+@mcp.tool()
+def calculate(expression: str) -> str:
+try:
+result=eval(expression)
+return str(result)
+except Exception as e:
+return f"Error:{e}"
+@mcp.tool()
+def get_weather(city: str)-> str:
+weather_data={
+"banglore":"28°C,cloudy",
+"mumbai":"31°C,Humid",
+"delhi":"36°C,Sunny"
+}
+return weather_data.get(city.lower(),"Weather information not available")
+if __name__ =="__main__":
+mcp.run()
+"""
+with open("mcp_server.py","w")as f:
+f.write(server_code)
+from mcp import ClientSession,StdioServerParameters
+from mcp.client.stdio import stdio_client
+import asyncio
+import os
+async def agent(user_message):
+mcp_server_params=StdioServerParameters(
+command="python",
+args=["mcp_server.py"]
+)
+with open(os.devnull,'w') as devnull_file:
+async with stdio_client(mcp_server_params,errlog=devnull_file) as (read,write):
+async with ClientSession(read,write) as session:
+await session.initialize()
+if any(op in user_message for op in ["+","-","*","/"]):
+result=await session.call_tool(
+"calculate",
+{"expression":user_message}
+)
+ print("Result:",result.content[0].text)
+        elif "weather" in user_message.lower():
+          city=user_message.lower().replace(
+              "weather",""
+          ).strip()
+          result=await session.call_tool(
+              "get_weather",
+              {"city":city}
+          )
+          print("Weather:",result.content[0].text)
+        else:
+          print("Unable to determine tool.")
+await agent(input("Enter query: "))
+6. Implement memory by integrating a standard in-memory context provider into an
+agent 
+import google.generativeai as genai
+genai.configure(api_key="AQ.Ab8RN6LlO7Lq5QOSI8yImgXKB4i-la5D0lHll3iC6lf1xGm8xw")
+model=genai.GenerativeModel("gemini-2.5-flash")
+memory=[]
+print("chatbot started (type 'exit' to quit)\n")
+while True:
+  user_input =input("You: ")
+  if user_input.lower()=="exit":
+    break
+  memory.append(f"User:{user_input}")
+  context ="\n".join(memory)
+  prompt=f""" you are a helpful assistant.
+  Conversation History:
+  {context}
+  Respond to the latest user message.
+  """
+  response=model.generate_content(prompt)
+  answer=response.text
+  memory.append(f"Assist:{answer}tan")
+  print(f"\nAssistant:{answer}\n"
